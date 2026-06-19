@@ -33,15 +33,15 @@ Na pasta `backend/`, verifique se o arquivo `.env` existe e está preenchido com
 
 ```env
 # Arquivo: backend/.env
-MQTT_BROKER_URL=mqtt://clientes.passerapido.com.br:2883
-MQTT_TOPIC_EVENTOS=PARC/EVENTOS
-MQTT_TOPIC_COMMANDS=PARCEIRO_COMANDOS
-MQTT_CLIENT_ID=parceiro_avl
-MQTT_USERNAME=empresa
-MQTT_PASSWORD=senha
-PORT=3000
-WATCHDOG_TIMEOUT_SEC=30
-LATENCY_TOLERANCE_SEC=5
+MQTT_BROKER_URL=
+MQTT_TOPIC_EVENTOS=
+MQTT_TOPIC_COMMANDS=
+MQTT_CLIENT_ID=
+MQTT_USERNAME=
+MQTT_PASSWORD=
+PORT=
+WATCHDOG_TIMEOUT_SEC=
+LATENCY_TOLERANCE_SEC=
 ```
 
 ## 🚀 Como iniciar a Aplicação (Usando Docker)
