@@ -1,0 +1,21 @@
+{
+  "name": "mqtt-monitor-backend",
+  "version": "1.0.0",
+  "description": "BFF para monitoramento MQTT via Socket.io",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "mqtt": "^5.7.0",
+    "protobufjs": "^7.3.0",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.3"
+  }
+}

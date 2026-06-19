@@ -1,0 +1,553 @@
+syntax="proto3";
+
+//*****************************************************************************
+// VERSÃO 1.9
+// Definicao dos eventos enviados do Validador, lidos de uma Fila do ActiveMQ:
+//*****************************************************************************
+enum AVLTipoMensagem {
+   AVL_EVT_NULL = 0;
+   //-- Eventos do validador --//
+
+   AVL_EVT_POSICIONAMENTO                   = 1;
+   AVL_EVT_ABERTURA_JORNADA                 = 2;
+   AVL_EVT_ABERTURA_FECHAMENTO_VIAGEM       = 3;
+   AVL_EVT_PASSAGEM_CARTAO                  = 4;
+   AVL_EVT_RECARGA                          = 5;
+   AVL_EVT_CATRACA_45_GRAUS                 = 6;
+   AVL_EVT_LIGA_DESLIGA                     = 7;
+   AVL_EVT_BLOQUEIO_CARTAO                  = 8;
+   AVL_EVT_PONTO_MOTORISTA                  = 9;
+   AVL_EVT_FECHAMENTO_JORNADA               = 10;
+   AVL_EVT_SELECAO_TABELA                   = 11;
+   AVL_EVT_TROCA_SENTIDO                    = 12;
+   AVL_EVT_BOTAO_PANICO                     = 13;
+   AVL_EVT_ENTRADA_SAIDA_PONTO              = 14;   // Novo evento, relacionado a Biblioteca de Pontos.
+   AVL_EVT_TERMINAL_DADOS                   = 15;
+   AVL_EVT_PASSAGEM_TICKET                  = 16;
+   AVL_EVT_RECEBIMENTO_TABELA_PARCIAL       = 17;
+   AVL_EVT_TELEMETRIA_RESUMO_VIAGEM         = 18;
+   AVL_EVT_ACELERACAO_BRUSCA                = 19;
+   AVL_EVT_FREADA_BRUSCA                    = 20;
+   AVL_EVT_EMBREAGEM_EXCESSIVA              = 21;
+   AVL_EVT_VIAGEM_SEM_CONDUTOR_IDENTIFICADO = 22;
+   AVL_EVT_PORTA_ABERTA                     = 23;
+   AVL_EVT_EXCESSO_VELOCIDADE               = 24;
+   AVL_EVT_EXCESSO_PARADO_MOTOR_LIGADO      = 25;
+   AVL_EVT_IGNICAO_LIGA_DESLIGA             = 26;
+   AVL_EVT_MUDANCA_RUMO                     = 27;
+   AVL_EVT_BANGUELA                         = 28;
+   AVL_EVT_CONDUTOR_IDENTIFICADO            = 29;
+   AVL_EVT_VELOCIDADE_CALIBRADA             = 30;
+   AVL_EVT_RPM_CALIBRADO                    = 31;
+   AVL_EVT_EXCESSO_ROTACAO_PARADO           = 32;
+   AVL_EVT_BATENDO_INICIO                   = 33;
+   AVL_EVT_AMARELA_INICIO                   = 34;
+   AVL_EVT_VERMELHA_INICIO                  = 35;
+   AVL_EVT_MOTOR_LIGA_DESLIGA               = 36;
+   AVL_EVT_INERCIA                          = 37;
+   AVL_EVT_EXTRAECO                         = 38;
+   AVL_EVT_VERDE                            = 39;
+   AVL_EVT_ABERTURA_VIAGEM                  = 40;
+   AVL_EVT_FECHAMENTO_VIAGEM                = 41;
+   AVL_EVT_USU_ACAO_REALIZADA               = 42;
+   AVL_EVT_VEICULO_INICIALIZADO             = 43;
+}
+
+//*****************************************************************************
+// Definições de constantes:
+//*****************************************************************************
+enum AVLQualidadeSinal {
+   AVL_QUALIDADE_SINAL_NULL     = 0;
+   AVL_QUALIDADE_SINAL_INVALIDO = 1;
+   AVL_QUALIDADE_SINAL_VALIDO   = 2;
+}
+
+enum AVLTipoOperacao {
+   AVL_TIPO_OPERACAO_NULL       = 0;
+   AVL_TIPO_OPERACAO_ABERTURA   = 1;
+   AVL_TIPO_OPERACAO_FECHAMENTO = 2;
+}
+
+enum AVLSentido {
+   AVL_SENTIDO_NULL  = 0;
+   AVL_SENTIDO_IDA   = 1;
+   AVL_SENTIDO_VOLTA = 2;
+}
+
+enum AVLInputOutput {
+   AVL_IO_NULL      = 0;
+   AVL_IO_DESLIGADO = 1;
+   AVL_IO_LIGADO    = 2;
+}
+
+enum AVLCondicional {
+   AVL_CONDITIONAL_NULL = 0;
+   AVL_CONDICIONAL_NAO  = 1;
+   AVL_CONDICIONAL_SIM  = 2;
+}
+
+enum AVLGiroCatraca {
+   AVL_GIRO_NULL    = 0;
+   AVL_GIRO_CATRACA = 1;
+   AVL_GIRO_TIMEOUT = 2;
+}
+
+enum AVLTipoRecarga {
+   AVL_RECARGA_NULL       = 0;
+   AVL_RECARGA_NORMAL     = 1;
+   AVL_RECARGA_AUTOMATICA = 2;
+}
+
+enum AVLEventoPonto {   // Novo enum, relacionado a Biblioteca de Pontos.
+   AVL_PONTO_NULL    = 0;
+   AVL_PONTO_ENTRADA = 1;
+   AVL_PONTO_SAIDA   = 2;
+}
+
+enum AVLResultado {   // Adicionar códigos de erro conforme necessidade.
+   AVL_COMANDO_NULL = 0;
+   AVL_COMANDO_OK   = 1;
+   AVL_COMANDO_ERRO = 2;   // Erro genérico.
+   AVL_COMANDO_SEQUENCIAL_INEXISTENTE = 3;
+}
+
+enum AVLDispositivoPanico {
+   AVL_PANICO_NULL      = 0;
+   AVL_PANICO_CENTRAL   = 1;
+   AVL_PANICO_MOTORISTA = 2;
+   AVL_PANICO_COBRADOR  = 3;
+}
+
+enum TipoPassagem {
+   E1          = 0;
+   LIBERCARD   = 1;
+}
+
+enum StatusAcaoRealizada {
+   SEM_ACAO        = 0;
+   ACAO_CONFIRMADA = 1;
+   ACAO_NAO_CONFIRMADA = 2;
+}
+
+enum AVLTipoValidador {
+   VALIDADOR_PADRAO             = 0;
+   VALIDADOR_AUDITORIA_VISION   = 1;
+}
+
+
+//*****************************************************************************
+// Componentes que formam os cabeçalho de evento e resultado de comandos:
+//*****************************************************************************
+message GPS {
+   fixed32 timestamp_utc_geracao = 1;   // Segundos a partir de 01/01/2000 (UTC do GPS).
+   AVLQualidadeSinal sinal_gps   = 2;   // Fix GPS
+   int32 latitude                = 3;   // Dividir por 360000
+   int32 longitude               = 4;   // Dividir por 360000
+   uint32 velocidade             = 5;   // Apenas inteiro. Em Km/h.
+   uint32 direcao                = 6;   // Apenas inteiro. Em graus 0 a 359. (Referente ao campo Track Angle do RMC)
+   uint32 hdop                   = 7;   // Dividir por 10
+   uint32 pdop                   = 8;   // Dividir por 10
+   uint32 numero_satelites       = 9;   // Satelites utilizados
+   uint32 odometro_calculado     = 10;  // Em metros.
+   uint32 lat_erro               = 11;  // Dividir por 100. Em metros.
+   uint32 lon_erro               = 12;  // Dividir por 100. Em metros. Caso "lat_erro" e "lon_erro" iguais a zero, o calculo do erro eh invalido.
+}
+
+message Modem {
+   AVLQualidadeSinal sinal_gprs = 1;   // Informação registrada no momento da geração do evento.
+   string ip_gprs               = 2;
+   string imei                  = 3;
+   string iccid                 = 4;
+}
+
+message Validador {
+   fixed32 ns_validador             = 1;
+   uint32 id_empresa                = 2;
+   uint32 cod_cidade                = 3;
+   uint32 cod_plugin                = 4;   // Identificador de quem envia o comando.
+   uint32 cod_veiculo               = 5;   // Se não houver cod_plugin, utilizar cod_veiculo na recepção do evento.
+   string prefixo_veiculo           = 6;
+   fixed32 data_hora_validador      = 7;   // Segundos a partir de 01/01/2000 (Hora Local) -> Deve existir garantia de ser a mesma hora do LOG do Validador.
+   string versao_software_validador = 8;
+   uint32 cod_garagem               = 9;
+   string versao_vision             = 10;
+   AVLCondicional status_vision     = 11;
+   AVLCondicional status_usb        = 12;
+   uint32 cod_linha                 = 13;
+   string prefixo_linha             = 14;
+   uint32 seq_tabela_parcial        = 15;
+   uint32 voltagem                  = 16;
+   uint32 bateria                   = 17;
+   uint32 faixa_telemetria          = 18;
+   string versao_kernel             = 19;
+   AVLTipoValidador tipo_validador  = 20;
+}
+
+message Sensores {
+   AVLInputOutput status_ignicao    = 1;
+   AVLInputOutput status_panico     = 2;
+   AVLInputOutput status_embreagem  = 3;
+   AVLInputOutput sensor1           = 4;
+   AVLInputOutput sensor2           = 5;
+   AVLInputOutput sensor3           = 6;
+   uint32 status_acelerador         = 7;
+   uint32 status_velocidade         = 8;
+   uint32 status_rpm                = 9;
+   uint32 status_odometro           = 10;
+   AVLInputOutput status_motor      = 11;
+}
+
+message Jornada {   // Esta mensagem somente enviada quando a jornada esta aberta.
+   uint32 cod_motorista          = 1;   // Codigo interno do cartao do motorista.
+   uint32 cod_operador           = 2;   // Codigo interno do cartao do "cobrador".
+   string cod_tabela_programacao = 3;
+   uint32 cod_linha              = 4;   // Codigo interno da linha.
+   string prefixo_linha          = 5;   // Codigo externo da linha.
+}
+
+message Viagem {   // Esta mensagem somente enviada quando a viagem esta aberta.
+   AVLSentido sentido = 1;
+}
+
+message APStatus {   
+  AVLCondicional status_ap = 1;
+  string mac               = 2;
+  string script            = 3;
+  string consumption       = 4;
+}
+
+message Telemetria {
+   fixed32 trip_id = 1;
+   uint32 cod_motorista = 2; // Codigo interno do cartao do motorista.
+}
+
+//*****************************************************************************
+// Cabeçalho presente em todos os eventos e resultados de comandos:
+//*****************************************************************************
+message AVLEventoHeader {
+   AVLTipoMensagem tipo_mensagem = 1;
+
+   uint32  sequencial    = 2;   // Sequencial pode ser usado para requisicao de retransmissao.
+
+   repeated GPS gps      = 3;
+   Modem modem           = 4;
+   Validador validador   = 5;
+   Sensores sensores     = 6;
+
+   Jornada jornada       = 7;   // Somente preenchida quando jornada esta aberta.
+   Viagem viagem         = 8;   // Somente preenchida quando viagem esta aberta.
+
+   APStatus apstatus     = 9;
+
+   Telemetria telemetria = 10;
+}
+
+//*****************************************************************************
+// Componentes do conteúdo dos eventos AVL_EVT_FECHAMENTO_JORNADA
+//*****************************************************************************
+message TipoPassageiros {
+   uint32 tipo       = 1;
+   uint32 quantidade = 2;
+}
+
+//*****************************************************************************
+// Conteúdo dos eventos:
+//*****************************************************************************
+message AVLEventoPosicionamento {   // Periodicidade deve ser configuravel.
+   // Nenhum dado.   // Ira variar de acordo com sensores de ignicao e panico.
+}
+
+message AVLEventoAberturaJornada {   // Alguns dados de jornada estão no Header.
+   uint32 tarifa = 1;                     // Dividir por 100
+   fixed32 data_hora_ultima_coleta = 2;   // Segundos a partir de 01/01/2000 (Hora Local).
+}
+
+message AVLEventoAberturaFechamentoViagem {
+   AVLTipoOperacao tipo_operacao = 1;   // O sentido da viagem foi movido para o Header.
+}
+
+message AVLEventoPassagemCartao {
+   uint32 tipo_cartao           = 1;
+   AVLCondicional integracao    = 2;
+   AVLGiroCatraca timeout       = 3;
+   uint32 codigo_interno_cartao = 4;
+   uint32 valor_debito          = 5;   // Dividir por 100
+   uint32 numero_transacao      = 6;
+   uint64 codigo_serial_cartao  = 7;
+   TipoPassagem tipoPassagem    = 8;
+   uint32 saldo_area            = 9;
+}
+
+message AVLEventoPassagemTicket {
+   uint32 tipo_cartao           = 1;
+   AVLCondicional integracao    = 2;
+   AVLGiroCatraca timeout       = 3;
+   uint64 id_ticket             = 4;   // identificador do ticket SAMID+contador interno
+   uint32 valor_debito          = 5;   // Dividir por 100
+   uint32 id_viagem             = 6;
+}
+
+message AVLEventoRecarga {
+   uint32 codigo_interno_cartao = 1;
+   uint32 valor_carregado       = 2;   // Dividir por 100
+   AVLTipoRecarga tipo_recarga  = 3;
+   uint32 numero_transacao      = 4;
+   uint32 lote                  = 5;
+   uint32 saldo_area            = 6;
+}
+
+message AVLEventoCatraca45Graus {
+   uint32 tempo_permanencia = 1;   // Em segundos.
+   uint32 cod_operador      = 2;   // Codigo interno do cartao do "cobrador".
+}
+
+message AVLEventoLigaDesliga {
+   fixed32 data_hora_religado  = 1;   // Segundos a partir de 01/01/2000 (Hora Local)
+   fixed32 data_hora_desligado = 2;   // Segundos a partir de 01/01/2000 (Hora Local)
+}
+
+message AVLEventoBloqueioCartao {
+   uint32 codigo_interno_cartao = 1;
+   uint32 id_tipo_bloqueio      = 2;
+}
+
+message AVLEventoPontoMotorista {
+   uint32 codigo_interno_cartao  = 1;
+   AVLTipoOperacao tipo_operacao = 2;
+}
+
+message AVLEventoFechamentoJornada {
+   uint32 quantidade_integracoes = 1;
+   uint32 quantidade_pagantes    = 2;
+   repeated TipoPassageiros quantidade_passageiros = 3;
+}
+
+message AVLEventoSelecaoTabela {
+   AVLSentido sentido            = 1;
+   string cod_tabela_programacao = 2;
+}
+
+message AVLEventoTrocaSentido {
+   AVLSentido sentido            = 1;
+   string cod_tabela_programacao = 2;
+}
+
+message AVLEventoBotaoPanico {   // O status do panico está no Header. Ele deve ser mantido ligado até que um comando o desligue.
+   AVLDispositivoPanico dispositivo = 1;   // Dispositivo disparado instalado próximo ao motorista ou próximo ao cobrador.
+}
+
+message AVLEventoEntradaSaidaPonto {   // Novo evento, relacionado a Biblioteca de Pontos.
+   AVLEventoPonto evento_ponto = 1;
+   uint32 id_ponto             = 2;
+}
+
+message AVLEventoTerminalDados {
+   uint32 mensagem_id    = 1;
+   string mensagem_texto = 2;
+}
+
+message AVLEventoTabelaParcial {
+   string tabela_parcial   = 1;
+   uint32 seq_tabela_dia   = 2;
+   uint32 seq_tabela_geral = 3;
+}
+
+//*****************************************************************************
+// Mensagem com campos necessarios para a telemetria
+//*****************************************************************************
+message AVLEventoTelemetriaResumoViagem {
+   uint32 start_odometer        = 1;
+   uint32 end_odometer          = 2;
+   uint32 start_houmeter        = 3;
+   uint32 end_houmeter          = 4;
+   uint32 time_stopped          = 5;
+   uint32 time_moving           = 6;
+   uint32 max_speed             = 7;
+   uint32 avg_speed             = 8;
+   uint32 count_over_speed      = 9;
+   uint32 time_over_speed       = 10;
+   uint32 time_banguela         = 11;
+   uint32 count_banguela        = 12;
+   uint32 time_blue             = 13;
+   uint32 count_blue            = 14;
+   uint32 time_green            = 15;
+   uint32 count_green           = 16;
+   uint32 time_extra_eco        = 17;
+   uint32 count_extra_eco       = 18;
+   uint32 time_yellow           = 19;
+   uint32 count_yellow          = 20;
+   uint32 time_red              = 21;
+   uint32 count_red             = 22;
+   uint32 time_stop_engine_on   = 23;
+   uint32 count_stop_engine_on  = 24;
+   uint32 time_stop_accel       = 25;
+   uint32 count_stop_accel      = 26;
+   uint32 time_cluth_excess     = 27;
+   uint32 count_cluth_excess    = 28;
+   uint32 time_engine_off       = 29;
+   uint32 count_hard_accel      = 30;
+   uint32 count_hard_brake      = 31;
+   uint32 time_tolerancia       = 32;
+   uint32 time_inercia          = 33;
+   fixed32 start_date_hour      = 34; // Data/hora do inicio da coleta dos contadores (Segundos a partir de 01/01/2000)
+   fixed32 end_date_hour        = 35; // Data/hora do fim da coleta dos contadores (Segundos a partir de 01/01/2000)
+}
+
+message AVLEventoAceleracaoBrusca {
+   // Nenhum dado.
+}
+
+message AVLEventoFreadaBrusca {
+   // Nenhum dado.
+}
+
+message AVLEventoEmbreagemExcessiva {
+   // Nenhum dado.
+}
+
+message AVLEventoViagemSemCondutorIdentificado {
+   // Nenhum dado.
+}
+
+message AVLEventoPortaAberta {
+   // Nenhum dado.
+}
+
+message AVLEventoExcessoVelocidade {
+   // Nenhum dado.
+}
+
+message AVLEventoExcessoParadoMotorLigado {
+   // Nenhum dado.
+}
+
+message AVLEventoIgnicaoLigaDesliga {
+   // Nenhum dado.
+}
+
+message AVLEventoMudancaRumo {
+   // Nenhum dado.
+}
+
+message AVLEventoBanguela {
+   // Nenhum dado.
+}
+
+message AVLEventoCondutorIdentificado {
+   // Nenhum dado.
+}
+
+message AVLEventoVelocidadeCalibrada {
+   // Nenhum dado.
+}
+
+message AVLEventoRPMCalibrado {
+   // Nenhum dado.
+}
+
+message AVLEventoExcessoRotacaoParado {
+   // Nenhum dado.
+}
+
+message AVLEventoBatendoInicio {
+   // Nenhum dado.
+}
+
+message AVLEventoAmarelaInicio {
+   // Nenhum dado.
+}
+
+message AVLEventoVermelhaInicio {
+   // Nenhum dado.
+}
+
+message AVLEventoMotorLigaDesliga {
+   AVLInputOutput status_motor = 1;
+}
+
+message AVLEventoInercia {
+   // Nenhum dado.
+}
+
+message AVLEventoExtraEco {
+   // Nenhum dado.
+}
+
+message AVLEventoVerde {
+   // Nenhum dado.
+}
+
+message AVLEventoAberturaViagem {
+   // Nenhum dado.
+}
+
+message AVLEventoFechamentoViagem {
+   // Nenhum dado.
+}
+
+message AVLEventoUsuAcaoRealizada {
+   uint32 codigo_interno_cartao = 1;
+   uint32 tipo_cartao           = 2;
+   uint32 acao                  = 3;
+   uint32 valor                 = 4;
+   uint64 assinatura            = 5;   // 
+   uint64 id_registro           = 6;   // 
+   StatusAcaoRealizada status   = 7;   
+}
+
+message AVLEventoVeiculoInicializado {
+// Nenhum dado.
+}
+
+//*****************************************************************************
+// Mensagem Protobuf principal:
+//*****************************************************************************
+message AVLEvento {
+   AVLEventoHeader                   avlHeader = 1;
+
+   //-- Eventos do validador --//
+
+   AVLEventoPosicionamento                avlEventoPosicionamento                = 2;
+   AVLEventoAberturaJornada               avlEventoAberturaJornada               = 3;
+   AVLEventoAberturaFechamentoViagem      avlEventoAberturaFechamentoViagem      = 4;
+   AVLEventoPassagemCartao                avlEventoPassagemCartao                = 5;
+   AVLEventoRecarga                       avlEventoRecarga                       = 6;
+   AVLEventoCatraca45Graus                avlEventoCatraca45Graus                = 7;
+   AVLEventoLigaDesliga                   avlEventoLigaDesliga                   = 8;
+   AVLEventoBloqueioCartao                avlEventoBloqueioCartao                = 9;
+   AVLEventoPontoMotorista                avlEventoPontoMotorista                = 10;
+   AVLEventoFechamentoJornada             avlEventoFechamentoJornada             = 11;
+   AVLEventoSelecaoTabela                 avlEventoSelecaoTabela                 = 12;
+   AVLEventoTrocaSentido                  avlEventoTrocaSentido                  = 13;
+   AVLEventoBotaoPanico                   avlEventoBotaoPanico                   = 14;
+   AVLEventoEntradaSaidaPonto             avlEventoEntradaSaidaPonto             = 15;
+   AVLEventoTerminalDados                 avlEventoTerminalDados                 = 16;
+   AVLEventoPassagemTicket                avlEventoPassagemTicket                = 17;
+   AVLEventoTabelaParcial                 avlEventoTabelaParcial                 = 18;
+   AVLEventoTelemetriaResumoViagem        avlEventoTelemetriaResumoViagem        = 19;
+   AVLEventoAceleracaoBrusca              avlEventoAceleracaoBrusca              = 20;
+   AVLEventoFreadaBrusca                  avlEventoFreadaBrusca                  = 21;
+   AVLEventoEmbreagemExcessiva            avlEventoEmbreagemExcessiva            = 22;
+   AVLEventoViagemSemCondutorIdentificado avlEventoViagemSemCondutorIdentificado = 23;
+   AVLEventoPortaAberta                   avlEventoPortaAberta                   = 24;
+   AVLEventoExcessoVelocidade             avlEventoExcessoVelocidade             = 25;
+   AVLEventoExcessoParadoMotorLigado      avlEventoExcessoParadoMotorLigado      = 26;
+   AVLEventoIgnicaoLigaDesliga            avlEventoIgnicaoLigaDesliga            = 27;
+   AVLEventoMudancaRumo                   avlEventoMudancaRumo                   = 28;
+   AVLEventoBanguela                      avlEventoBanguela                      = 29;
+   AVLEventoCondutorIdentificado          avlEventoCondutorIdentificado          = 30;
+   AVLEventoVelocidadeCalibrada           avlEventoVelocidadeCalibrada           = 31;
+   AVLEventoRPMCalibrado                  avlEventoRPMCalibrado                  = 32;
+   AVLEventoExcessoRotacaoParado          avlEventoExcessoRotacaoParado          = 33;
+   AVLEventoBatendoInicio                 avlEventoBatendoInicio                 = 34;
+   AVLEventoAmarelaInicio                 avlEventoAmarelaInicio                 = 35;
+   AVLEventoVermelhaInicio                avlEventoVermelhaInicio                = 36;
+   AVLEventoMotorLigaDesliga              avlEventoMotorLigaDesliga              = 37;
+   AVLEventoInercia                       avlEventoInercia                       = 38;
+   AVLEventoExtraEco                      avlEventoExtraEco                      = 39;
+   AVLEventoVerde                         avlEventoVerde                         = 40;
+   AVLEventoAberturaViagem                avlEventoAberturaViagem                = 41;
+   AVLEventoFechamentoViagem              avlEventoFechamentoViagem              = 42;
+   AVLEventoUsuAcaoRealizada              avlEventoUsuAcaoRealizada              = 43;
+   AVLEventoVeiculoInicializado           avlEventoVeiculoInicializado           = 44;
+}
